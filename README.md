@@ -1,15 +1,24 @@
 # LiquidDropsKit
 
-A Swift Package that provides `LiquidDrop`, `LiquidDrops`, and `.liquidDropsHost()` for liquid-glass toast notifications.
+Liquid-glass toast notifications for SwiftUI.
 
-## Add to an Xcode app
+## Requirements
 
-1. In Xcode: `File` -> `Add Package Dependencies...`
-2. Click `Add Local...`
-3. Select this folder: `LiquidDropsKit`
-4. Add product `LiquidDropsKit` to your app target.
+- iOS 26.0+
+- Xcode 16+
 
-## Use
+## Installation (Xcode)
+
+1. In Xcode, open your app project.
+2. Go to `File` -> `Add Package Dependencies...`
+3. Paste this URL:
+   `https://github.com/swi-parth-ft/liquid-drops-kit`
+4. Choose a dependency rule (`main` branch for now).
+5. Add product `LiquidDropsKit` to your app target.
+
+## Setup
+
+Attach the host once at the app root:
 
 ```swift
 import SwiftUI
@@ -26,13 +35,33 @@ struct DemoApp: App {
 }
 ```
 
+## Show a toast
+
 ```swift
+import LiquidDropsKit
+import UIKit
+
 LiquidDrops.show(
     LiquidDrop(
         title: "Copied",
-        subtitle: "Paste anywhere",
+        subtitle: "Ready to paste",
+        icon: UIImage(systemName: "checkmark.circle.fill"),
+        position: .top,
         duration: .recommended,
-        effectStyle: .clear
+        effectStyle: .regular
     )
 )
 ```
+
+## Options
+
+- `position`: `.top` or `.bottom`
+- `duration`: `.recommended`, `.nolimit`, or `.seconds(...)`
+- `effectStyle`: `.regular` or `.clear`
+- `action`: trailing button with callback (`LiquidDrop.Action`)
+- `glassTint`: optional tint color for the glass background
+
+## Notes
+
+- Swipe up on the toast to dismiss immediately.
+- Top toasts animate from the Dynamic Island region on supported iPhones.
