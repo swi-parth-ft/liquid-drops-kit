@@ -13,6 +13,7 @@ public struct LiquidDrop: Identifiable, ExpressibleByStringLiteral {
         action: Action? = nil,
         position: Position = .top,
         duration: Duration = .recommended,
+        animationStyle: AnimationStyle = .default,
         accessibility: Accessibility? = nil,
         effectStyle: EffectStyle = .regular,
         glassTint: Color? = nil
@@ -32,6 +33,7 @@ public struct LiquidDrop: Identifiable, ExpressibleByStringLiteral {
         self.action = action
         self.position = position
         self.duration = duration
+        self.animationStyle = animationStyle
         self.effectStyle = effectStyle
         self.glassTint = glassTint
         self.accessibility = accessibility
@@ -51,6 +53,7 @@ public struct LiquidDrop: Identifiable, ExpressibleByStringLiteral {
     public var action: Action?
     public var position: Position
     public var duration: Duration
+    public var animationStyle: AnimationStyle
     public var accessibility: Accessibility
     public var effectStyle: EffectStyle
     public var glassTint: Color?
@@ -67,6 +70,31 @@ public extension LiquidDrop {
     enum EffectStyle: Equatable {
         case regular
         case clear
+    }
+}
+
+public extension LiquidDrop {
+    struct AnimationStyle: Equatable {
+        public init(coming: AnimationCurve = .spring, going: AnimationCurve = .easeInOut) {
+            self.coming = coming
+            self.going = going
+        }
+
+        public var coming: AnimationCurve
+        public var going: AnimationCurve
+
+        public static let `default` = Self()
+    }
+}
+
+public extension LiquidDrop {
+    enum AnimationCurve: Equatable {
+        case spring
+        case snappy
+        case bouncy
+        case smooth
+        case easeInOut
+        case linear
     }
 }
 
@@ -207,7 +235,7 @@ public final class LiquidDrops: ObservableObject {
         visibility = 0
 
         willShowDrop?(next)
-        withAnimation(.spring(duration: 0.72, bounce: 0.15)) {
+        withAnimation(animation(forEntrance: next.animationStyle.coming)) {
             visibility = 1
         }
         didShowDrop?(next)
@@ -235,9 +263,11 @@ public final class LiquidDrops: ObservableObject {
         autoHideTask = nil
 
         willDismissDrop?(currentDrop)
+        let dismissAnimation = animation(forExit: currentDrop.animationStyle.going)
+        let dismissDuration = animationDuration(forExit: currentDrop.animationStyle.going)
 
         if animated {
-            withAnimation(.easeInOut(duration: 0.26)) {
+            withAnimation(dismissAnimation) {
                 visibility = 0
             }
         } else {
@@ -249,7 +279,7 @@ public final class LiquidDrops: ObservableObject {
             guard let self else { return }
 
             if animated {
-                try? await Task.sleep(for: .milliseconds(280))
+                try? await Task.sleep(for: .seconds(dismissDuration + 0.02))
             }
 
             guard let stillCurrent = self.currentDrop, stillCurrent.id == dropID else { return }
@@ -259,6 +289,55 @@ public final class LiquidDrops: ObservableObject {
             try? await Task.sleep(for: .seconds(self.delayBetweenDrops))
             guard !Task.isCancelled else { return }
             self.presentNextIfNeeded()
+        }
+    }
+
+    private func animation(forEntrance curve: LiquidDrop.AnimationCurve) -> Animation {
+        switch curve {
+        case .spring:
+            return .spring(duration: 0.72, bounce: 0.15)
+        case .snappy:
+            return .snappy(duration: 0.44, extraBounce: 0.12)
+        case .bouncy:
+            return .bouncy(duration: 0.7, extraBounce: 0.18)
+        case .smooth:
+            return .smooth(duration: 0.45)
+        case .easeInOut:
+            return .easeInOut(duration: 0.45)
+        case .linear:
+            return .linear(duration: 0.42)
+        }
+    }
+
+    private func animation(forExit curve: LiquidDrop.AnimationCurve) -> Animation {
+        switch curve {
+        case .spring:
+            return .spring(duration: 0.32, bounce: 0.05)
+        case .snappy:
+            return .snappy(duration: 0.24, extraBounce: 0)
+        case .bouncy:
+            return .bouncy(duration: 0.34, extraBounce: 0.08)
+        case .smooth:
+            return .smooth(duration: 0.26)
+        case .easeInOut:
+            return .easeInOut(duration: 0.26)
+        case .linear:
+            return .linear(duration: 0.22)
+        }
+    }
+
+    private func animationDuration(forExit curve: LiquidDrop.AnimationCurve) -> TimeInterval {
+        switch curve {
+        case .spring:
+            return 0.32
+        case .snappy:
+            return 0.24
+        case .bouncy:
+            return 0.34
+        case .smooth, .easeInOut:
+            return 0.26
+        case .linear:
+            return 0.22
         }
     }
 }

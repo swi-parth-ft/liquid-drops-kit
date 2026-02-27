@@ -48,6 +48,7 @@ LiquidDrops.show(
         icon: UIImage(systemName: "checkmark.circle.fill"),
         position: .top,
         duration: .recommended,
+        animationStyle: .init(coming: .bouncy, going: .snappy),
         effectStyle: .regular
     )
 )
@@ -57,6 +58,9 @@ LiquidDrops.show(
 
 - `position`: `.top` or `.bottom`
 - `duration`: `.recommended`, `.nolimit`, or `.seconds(...)`
+- `animationStyle`: choose toast appear/disappear animation using:
+  - `coming`: `.spring`, `.snappy`, `.bouncy`, `.smooth`, `.easeInOut`, `.linear`
+  - `going`: `.spring`, `.snappy`, `.bouncy`, `.smooth`, `.easeInOut`, `.linear`
 - `effectStyle`: `.regular` or `.clear`
 - `action`: trailing button with callback (`LiquidDrop.Action`)
 - `glassTint`: optional tint color for the glass background
