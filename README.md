@@ -4,7 +4,7 @@ Liquid-glass toast notifications for SwiftUI.
 
 ## Requirements
 
-- iOS 26.0+
+- iOS 17.0+
 - Xcode 16+
 
 ## Installation (Xcode)
@@ -49,7 +49,8 @@ LiquidDrops.show(
         position: .top,
         duration: .recommended,
         animationStyle: .init(coming: .bouncy, going: .snappy),
-        effectStyle: .regular
+        effectStyle: .regular,     // iOS 26+
+        materialStyle: .regular    // iOS 17-25 fallback
     )
 )
 ```
@@ -61,7 +62,8 @@ LiquidDrops.show(
 - `animationStyle`: choose toast appear/disappear animation using:
   - `coming`: `.spring`, `.snappy`, `.bouncy`, `.smooth`, `.easeInOut`, `.linear`
   - `going`: `.spring`, `.snappy`, `.bouncy`, `.smooth`, `.easeInOut`, `.linear`
-- `effectStyle`: `.regular` or `.clear`
+- `effectStyle` (iOS 26+): `.regular` or `.clear`
+- `materialStyle` (iOS 17-25): `.ultraThin`, `.thin`, `.regular`, `.thick`, `.ultraThick`
 - `action`: trailing button with callback (`LiquidDrop.Action`)
 - `glassTint`: optional tint color for the glass background
 
@@ -69,3 +71,5 @@ LiquidDrops.show(
 
 - Swipe up on the toast to dismiss immediately.
 - Top toasts animate from the Dynamic Island region on supported iPhones.
+- On iOS 26+, the package uses glass effects.
+- On iOS 17-25, it automatically uses the configured `materialStyle`.

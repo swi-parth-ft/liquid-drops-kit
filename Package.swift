@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "LiquidDropsKit",
     platforms: [
-        .iOS("26.0")
+        .iOS("17.0")
     ],
     products: [
         .library(

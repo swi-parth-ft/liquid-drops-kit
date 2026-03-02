@@ -16,6 +16,7 @@ public struct LiquidDrop: Identifiable, ExpressibleByStringLiteral {
         animationStyle: AnimationStyle = .default,
         accessibility: Accessibility? = nil,
         effectStyle: EffectStyle = .regular,
+        materialStyle: MaterialStyle = .regular,
         glassTint: Color? = nil
     ) {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -35,6 +36,7 @@ public struct LiquidDrop: Identifiable, ExpressibleByStringLiteral {
         self.duration = duration
         self.animationStyle = animationStyle
         self.effectStyle = effectStyle
+        self.materialStyle = materialStyle
         self.glassTint = glassTint
         self.accessibility = accessibility
             ?? .init(message: [trimmedTitle, self.subtitle].compactMap { $0 }.joined(separator: ", "))
@@ -56,6 +58,7 @@ public struct LiquidDrop: Identifiable, ExpressibleByStringLiteral {
     public var animationStyle: AnimationStyle
     public var accessibility: Accessibility
     public var effectStyle: EffectStyle
+    public var materialStyle: MaterialStyle
     public var glassTint: Color?
 }
 
@@ -70,6 +73,16 @@ public extension LiquidDrop {
     enum EffectStyle: Equatable {
         case regular
         case clear
+    }
+}
+
+public extension LiquidDrop {
+    enum MaterialStyle: Equatable {
+        case ultraThin
+        case thin
+        case regular
+        case thick
+        case ultraThick
     }
 }
 
@@ -778,21 +791,7 @@ private struct LiquidDropsOverlay: View {
         .padding(.vertical, drop.subtitle == nil ? 14 : 10)
         .padding(.horizontal, 14)
         .background {
-            if drop.effectStyle == .clear {
-                shape
-                    .fill(.clear)
-                    .glassEffect(
-                        .clear.tint((drop.glassTint ?? .cyan).opacity(0.14)),
-                        in: shape
-                    )
-            } else {
-                shape
-                    .fill(.clear)
-                    .glassEffect(
-                        .regular.tint((drop.glassTint ?? .cyan).opacity(0.2)),
-                        in: shape
-                    )
-            }
+            cardBackground(for: drop, shape: shape)
         }
         .fixedSize(horizontal: true, vertical: false)
         .contentShape(shape)
@@ -803,6 +802,42 @@ private struct LiquidDropsOverlay: View {
         }
         .gesture(dragGesture(for: drop))
         .padding(.horizontal, 20)
+    }
+
+    @ViewBuilder
+    private func cardBackground(for drop: LiquidDrop, shape: RoundedRectangle) -> some View {
+        if #available(iOS 26.0, *) {
+            glassBackground(for: drop, shape: shape)
+        } else {
+            materialBackground(for: drop, shape: shape)
+        }
+    }
+
+    @available(iOS 26.0, *)
+    private func glassBackground(for drop: LiquidDrop, shape: RoundedRectangle) -> some View {
+        if drop.effectStyle == .clear {
+            shape
+                .fill(.clear)
+                .glassEffect(
+                    .clear.tint((drop.glassTint ?? .cyan).opacity(0.14)),
+                    in: shape
+                )
+        } else {
+            shape
+                .fill(.clear)
+                .glassEffect(
+                    .regular.tint((drop.glassTint ?? .cyan).opacity(0.2)),
+                    in: shape
+                )
+        }
+    }
+
+    private func materialBackground(for drop: LiquidDrop, shape: RoundedRectangle) -> some View {
+        shape
+            .fill(drop.materialStyle.swiftUIMaterial)
+            .overlay {
+                shape.fill((drop.glassTint ?? .cyan).opacity(0.12))
+            }
     }
 
     private func dragGesture(for drop: LiquidDrop) -> some Gesture {
@@ -865,6 +900,23 @@ private func lerp(from: CGFloat, to: CGFloat, t: CGFloat) -> CGFloat {
 
 private func clamped(_ value: CGFloat, to limits: ClosedRange<CGFloat>) -> CGFloat {
     min(max(value, limits.lowerBound), limits.upperBound)
+}
+
+private extension LiquidDrop.MaterialStyle {
+    var swiftUIMaterial: Material {
+        switch self {
+        case .ultraThin:
+            return .ultraThinMaterial
+        case .thin:
+            return .thinMaterial
+        case .regular:
+            return .regularMaterial
+        case .thick:
+            return .thickMaterial
+        case .ultraThick:
+            return .ultraThickMaterial
+        }
+    }
 }
 
 private struct SizePreferenceKey: PreferenceKey {
